@@ -24,3 +24,75 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+:root {
+  --crt-bg: #050505;
+  --crt-green: #36ff7a;
+  --crt-dim: rgba(54, 255, 122, 0.65);
+}
+
+body {
+  font-family: var(--font-press-start), system-ui, sans-serif;
+}
+
+/* CRT overlay */
+.crt {
+  position: relative;
+  overflow: hidden;
+  background: var(--crt-bg);
+}
+
+.crt::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.05) 1px,
+    rgba(0, 0, 0, 0) 3px,
+    rgba(0, 0, 0, 0) 6px
+  );
+  mix-blend-mode: overlay;
+  opacity: 0.35;
+}
+
+.crt::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.1),
+    rgba(0, 0, 0, 0) 60%
+  );
+  opacity: 0.35;
+}
+
+/* Flicker animation */
+@keyframes crtFlicker {
+  0% {
+    opacity: 0.92;
+  }
+  5% {
+    opacity: 0.85;
+  }
+  10% {
+    opacity: 0.92;
+  }
+  15% {
+    opacity: 0.88;
+  }
+  20% {
+    opacity: 0.94;
+  }
+  100% {
+    opacity: 0.92;
+  }
+}
+
+.crt-flicker {
+  animation: crtFlicker 4.5s infinite;
+}
