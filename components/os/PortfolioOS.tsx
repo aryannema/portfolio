@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { playStartup } from "@/lib/sounds";
 import BiosScreen from "./BiosScreen";
 import BootScreen from "./BootScreen";
@@ -17,12 +17,33 @@ interface PortfolioOSProps {
   resumeUrl: string | null;
 }
 
+const BOOT_DONE_KEY = "portfolio-boot-done";
+
 export default function PortfolioOS({ profile, skills, projects, resumeUrl }: PortfolioOSProps) {
-  const [phase, setPhase] = useState<Phase>("bios");
+  // null until hydration — avoids server/client mismatch while reading localStorage
+  const [phase, setPhase] = useState<Phase | null>(null);
+
+  useEffect(() => {
+    // Skip the boot sequence for returning visitors so the desktop loads instantly
+    const alreadyBooted = localStorage.getItem(BOOT_DONE_KEY) === "1";
+    if (alreadyBooted) {
+      setPhase("desktop");
+    } else {
+      setPhase("bios");
+    }
+  }, []);
+
+  const goToDesktop = () => {
+    localStorage.setItem(BOOT_DONE_KEY, "1");
+    setPhase("desktop");
+    playStartup();
+  };
+
+  // Black screen during hydration — matches the page background, invisible to user
+  if (phase === null) return <div style={{ width: "100vw", height: "100vh", background: "#000" }} />;
 
   return (
     <div style={{ width: "100vw", height: "100vh", overflow: "hidden", position: "relative" }}>
-      {/* CRT overlay effects */}
       <div className="crt-overlay" />
       <div className="crt-vignette" />
 
@@ -34,7 +55,7 @@ export default function PortfolioOS({ profile, skills, projects, resumeUrl }: Po
       )}
 
       {phase === "boot" && (
-        <BootScreen onComplete={() => { setPhase("desktop"); playStartup(); }} />
+        <BootScreen onComplete={goToDesktop} />
       )}
 
       {phase === "desktop" && (

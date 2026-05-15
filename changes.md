@@ -1,5 +1,41 @@
 # Portfolio OS — Dev Log
 
+## 2026-05-16 — Session 7
+
+### Security Hardening
+
+- **`middleware.ts`** (new at root) — Supabase session refresh on every request keeps auth tokens alive; also protects all `/admin/*` routes at the edge (belt-and-suspenders on top of `(protected)/layout.tsx`)
+- **Security headers** added to `next.config.mjs`: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera/mic/geolocation disabled), `X-XSS-Protection`, and a Content-Security-Policy that whitelists only Supabase domains, Google Fonts, and `self`
+- **Google OAuth** on admin login (`/admin/login`) — "Continue with Google" button using `supabase.auth.signInWithOAuth`. Requires Google provider enabled in Supabase dashboard (see setup note below)
+- **OAuth callback route** — `app/admin/auth/callback/route.ts` exchanges the `?code=` param for a session cookie and redirects to `/admin`
+- **Rate limiting** on `/api/contact` — 5 submissions per IP per 60-second window; returns 429 with user-friendly message
+- **Input sanitization** on `/api/contact` — strips `<>` from all string fields, enforces length caps (name 100, email 254, message 5000 chars)
+- **Next.js upgraded** from 15.3.3 → 16.2.6 to patch CVE-2025-66478
+
+### SEO
+
+- **Dynamic `generateMetadata`** in `app/page.tsx` — title, description, Open Graph, and Twitter Card all pulled from the live Supabase profile row; `metadataBase` set from `NEXT_PUBLIC_SITE_URL` env var
+- **JSON-LD Person schema** injected in `<head>` on the home page; values from profile (name, bio, email, location, GitHub, LinkedIn); `</script>` injection prevented with Unicode escaping
+- **`app/robots.ts`** — generates `/robots.txt` disallowing `/admin/` and `/api/`; links to sitemap
+- **`app/sitemap.ts`** — generates `/sitemap.xml` with the home page URL
+
+### Resume Skill Extraction (AI-free)
+
+- Installed **`pdf-parse`** (+ `@types/pdf-parse`); registered in `serverExternalPackages` to stay out of webpack
+- **`app/api/admin/extract-skills/route.ts`** (new) — downloads `resume.pdf` from Supabase storage, parses text with pdf-parse, then word-boundary matches against a 140+ entry skill dictionary covering Frontend / Backend / Database / DevOps / Mobile / Other
+- **Resume admin page** fully rewritten with a two-stage UI:
+  1. Upload (existing) → on success shows **"🔍 Extract Skills from Resume"** button
+  2. Skill panel shows every detected skill with a checkbox (default ✅), a category badge, and a proficiency slider (default 80%). "Select all / Deselect all" shortcuts. **"Import N Skills"** button inserts selected rows into the `skills` table in one batch
+
+#### Google OAuth setup (manual step required)
+1. Supabase dashboard → Authentication → Providers → Google → Enable
+2. Google Cloud Console → Create OAuth 2.0 credentials
+3. Authorised redirect URI: `https://<your-project>.supabase.co/auth/v1/callback`
+4. Paste client ID + secret into Supabase
+5. Add `NEXT_PUBLIC_SITE_URL=https://your-domain.com` to your `.env.local`
+
+---
+
 ## 2026-05-15 — Session 6
 
 ### Terminal Window

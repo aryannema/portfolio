@@ -1,9 +1,23 @@
+/* ─── FONTS (self-hosted — no external request, no render-blocking) ─────── */
+@font-face {
+  font-family: "VT323";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/vt323.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Share Tech Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/share-tech-mono.woff2") format("woff2");
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* ─── FONTS ─────────────────────────────────────── */
-@import url("https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap");
 
 /* ─── BASE ───────────────────────────────────────── */
 * {
