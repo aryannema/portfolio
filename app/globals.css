@@ -1,0 +1,386 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── FONTS ─────────────────────────────────────── */
+@import url("https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap");
+
+/* ─── BASE ───────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  overflow: hidden;
+  background: #000;
+  font-family: "MS Sans Serif", Arial, sans-serif;
+  font-size: 11px;
+  cursor: default;
+  user-select: none;
+}
+
+/* ─── CRT SCANLINES ──────────────────────────────── */
+.crt-overlay {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.07) 2px,
+    rgba(0, 0, 0, 0.07) 4px
+  );
+}
+
+.crt-vignette {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    rgba(0, 0, 0, 0.65) 100%
+  );
+}
+
+/* ─── WIN95 COMPONENTS ───────────────────────────── */
+.win95-raised {
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+}
+
+.win95-inset {
+  border: 2px solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+}
+
+.win95-btn {
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  padding: 3px 12px;
+  font-family: "MS Sans Serif", Arial, sans-serif;
+  font-size: 11px;
+  cursor: pointer;
+  min-width: 75px;
+  text-align: center;
+}
+
+.win95-btn:active {
+  border-color: #808080 #ffffff #ffffff #808080;
+  padding: 4px 11px 2px 13px;
+}
+
+.win95-btn:focus {
+  outline: 1px dotted #000;
+  outline-offset: -4px;
+}
+
+.win95-input {
+  background: #ffffff;
+  border: 2px solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+  padding: 2px 4px;
+  font-family: "MS Sans Serif", Arial, sans-serif;
+  font-size: 11px;
+  outline: none;
+}
+
+.win95-input:focus {
+  outline: none;
+}
+
+.win95-window {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  box-shadow: 2px 2px 0 #000000;
+  min-width: 200px;
+  min-height: 150px;
+}
+
+.win95-titlebar {
+  background: #000080;
+  color: #ffffff;
+  padding: 3px 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: move;
+  flex-shrink: 0;
+  font-weight: bold;
+  font-size: 11px;
+}
+
+.win95-titlebar.inactive {
+  background: #808080;
+}
+
+.win95-titlebar-btn {
+  width: 16px;
+  height: 14px;
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: bold;
+  color: #000;
+  flex-shrink: 0;
+}
+
+.win95-titlebar-btn:active {
+  border-color: #808080 #ffffff #ffffff #808080;
+}
+
+.win95-menubar {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #808080;
+  padding: 2px 2px 0;
+  flex-shrink: 0;
+  background: #c0c0c0;
+}
+
+.win95-menubar-item {
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.win95-menubar-item:hover {
+  background: #000080;
+  color: #ffffff;
+}
+
+.win95-statusbar {
+  border-top: 2px solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+  padding: 2px 6px;
+  font-size: 11px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ─── DESKTOP ICON ───────────────────────────────── */
+.desktop-icon {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  padding: 4px;
+  width: 76px;
+  text-align: center;
+}
+
+.desktop-icon:hover .icon-image {
+  outline: 1px dotted rgba(255, 255, 255, 0.8);
+}
+
+.desktop-icon.selected .icon-img-wrap {
+  background: rgba(0, 0, 128, 0.4);
+}
+
+.icon-label {
+  color: #fff;
+  font-size: 11px;
+  text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000,
+    -1px 1px 0 #000;
+  text-align: center;
+  line-height: 1.3;
+  word-break: break-word;
+  max-width: 72px;
+}
+
+/* ─── BIOS ───────────────────────────────────────── */
+.bios-screen {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  color: #aaaaaa;
+  font-family: "VT323", monospace;
+  font-size: 16px;
+  padding: 28px 40px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+/* ─── TASKBAR ─────────────────────────────────────── */
+.taskbar {
+  height: 30px;
+  background: #c0c0c0;
+  border-top: 2px solid #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 500;
+}
+
+.start-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 8px;
+  font-weight: bold;
+  font-size: 12px;
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.start-button.active,
+.start-button:active {
+  border-color: #808080 #ffffff #ffffff #808080;
+  padding: 1px 7px 0 9px;
+}
+
+.taskbar-window-btn {
+  height: 22px;
+  padding: 0 8px;
+  font-size: 11px;
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  cursor: pointer;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.taskbar-window-btn.active {
+  border-color: #808080 #ffffff #ffffff #808080;
+  background: #b0b0b0;
+}
+
+/* ─── START MENU ──────────────────────────────────── */
+.start-menu {
+  position: absolute;
+  bottom: 30px;
+  left: 0;
+  width: 200px;
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  box-shadow: 2px 2px 0 #000;
+  z-index: 600;
+  display: flex;
+}
+
+.start-menu-sidebar {
+  width: 24px;
+  background: #000080;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.start-menu-sidebar span {
+  color: #c0c0c0;
+  font-size: 14px;
+  font-weight: bold;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  letter-spacing: 2px;
+}
+
+.start-menu-items {
+  flex: 1;
+  padding: 4px 0;
+}
+
+.start-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 5px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.start-menu-item:hover {
+  background: #000080;
+  color: #ffffff;
+}
+
+.start-menu-separator {
+  height: 1px;
+  background: #808080;
+  margin: 4px 4px 4px 28px;
+}
+
+/* ─── SCROLLBAR ───────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+
+::-webkit-scrollbar-track {
+  background: #c0c0c0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+}
+
+::-webkit-scrollbar-button {
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  height: 16px;
+  width: 16px;
+}
+
+/* ─── WINDOW ANIMATIONS ──────────────────────────── */
+@keyframes win-open {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.win95-window-opening {
+  animation: win-open 0.12s ease-out forwards;
+  transform-origin: top left;
+}
+
+/* ─── ADMIN ───────────────────────────────────────── */
+.admin-body {
+  font-family: "Inter", system-ui, sans-serif;
+  background: #0f0f0f;
+  color: #e5e5e5;
+  overflow: auto;
+  cursor: default;
+  user-select: text;
+}
