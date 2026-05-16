@@ -4,11 +4,12 @@ import { useState, useEffect } from "react";
 import { playStartup } from "@/lib/sounds";
 import BiosScreen from "./BiosScreen";
 import BootScreen from "./BootScreen";
+import LoginScreen from "./LoginScreen";
 import Desktop from "./Desktop";
 import { WindowManagerProvider } from "./WindowManager";
 import { Profile, Skill, Project } from "@/types";
 
-type Phase = "bios" | "boot" | "desktop";
+type Phase = "bios" | "boot" | "login" | "desktop";
 
 interface PortfolioOSProps {
   profile: Profile | null;
@@ -55,7 +56,11 @@ export default function PortfolioOS({ profile, skills, projects, resumeUrl }: Po
       )}
 
       {phase === "boot" && (
-        <BootScreen onComplete={goToDesktop} />
+        <BootScreen onComplete={() => setPhase("login")} />
+      )}
+
+      {phase === "login" && (
+        <LoginScreen onLogin={goToDesktop} />
       )}
 
       {phase === "desktop" && (
