@@ -49,10 +49,27 @@ interface ContextMenu {
   y: number;
 }
 
+interface Wallpaper {
+  bg: string;
+  pattern: string;
+}
+
+const WALLPAPERS: Wallpaper[] = [
+  { bg: "#008080", pattern: "repeating-linear-gradient(45deg, rgba(0,100,100,0.12) 0, rgba(0,100,100,0.12) 1px, transparent 1px, transparent 8px)" },
+  { bg: "#001a4d", pattern: "repeating-linear-gradient(45deg, rgba(0,40,120,0.2) 0, rgba(0,40,120,0.2) 1px, transparent 1px, transparent 8px)" },
+  { bg: "#1a4a1a", pattern: "repeating-linear-gradient(45deg, rgba(0,80,0,0.15) 0, rgba(0,80,0,0.15) 1px, transparent 1px, transparent 8px)" },
+  { bg: "#3d0057", pattern: "repeating-linear-gradient(-45deg, rgba(100,0,160,0.2) 0, rgba(100,0,160,0.2) 1px, transparent 1px, transparent 8px)" },
+  { bg: "#5c0011", pattern: "repeating-linear-gradient(45deg, rgba(140,0,20,0.2) 0, rgba(140,0,20,0.2) 1px, transparent 1px, transparent 8px)" },
+  { bg: "#1a2a3f", pattern: "repeating-linear-gradient(-45deg, rgba(40,80,140,0.15) 0, rgba(40,80,140,0.15) 1px, transparent 1px, transparent 10px)" },
+  { bg: "#0a0a18", pattern: "radial-gradient(circle, rgba(255,255,255,0.09) 1px, transparent 1px) 0 0 / 22px 22px" },
+  { bg: "#3a3000", pattern: "repeating-linear-gradient(45deg, rgba(100,80,0,0.2) 0, rgba(100,80,0,0.2) 1px, transparent 1px, transparent 8px)" },
+];
+
 export default function Desktop({ profile, skills, projects, resumeUrl }: DesktopProps) {
   const { windows, openWindow } = useWindowManager();
   const desktopRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  const [wallpaper] = useState<Wallpaper>(() => WALLPAPERS[Math.floor(Math.random() * WALLPAPERS.length)]);
   const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
   const [selectedIcon, setSelectedIcon] = useState<WindowId | null>(null);
   const [screensaver, setScreensaver] = useState(false);
@@ -109,7 +126,7 @@ export default function Desktop({ profile, skills, projects, resumeUrl }: Deskto
   }, []);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "#008080" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: wallpaper.bg }}>
       {/* Desktop area */}
       <div
         ref={desktopRef}
@@ -122,7 +139,7 @@ export default function Desktop({ profile, skills, projects, resumeUrl }: Deskto
           style={{
             position: isMobile ? "fixed" : "absolute",
             inset: 0,
-            backgroundImage: "repeating-linear-gradient(45deg, rgba(0,100,100,0.12) 0, rgba(0,100,100,0.12) 1px, transparent 1px, transparent 8px)",
+            backgroundImage: wallpaper.pattern,
             pointerEvents: "none",
           }}
         />

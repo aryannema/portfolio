@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 const CELL = 12;
 const COLS = 24;
@@ -23,6 +24,8 @@ export default function SnakeWindow() {
   const [alive, setAlive] = useState(true);
   const [started, setStarted] = useState(false);
   const loopRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const isMobile = useIsMobile();
 
   const placeFood = useCallback((snake: Point[]) => {
     let f: Point;
@@ -68,10 +71,7 @@ export default function SnakeWindow() {
       ctx.fillStyle = "#00ff41";
       ctx.font = "bold 16px VT323, monospace";
       ctx.textAlign = "center";
-      ctx.fillText("Click to Start", (COLS * CELL) / 2, (ROWS * CELL) / 2 - 8);
-      ctx.font = "12px VT323, monospace";
-      ctx.fillStyle = "#808080";
-      ctx.fillText("Arrow keys to move", (COLS * CELL) / 2, (ROWS * CELL) / 2 + 12);
+      ctx.fillText("Tap / Click to Start", (COLS * CELL) / 2, (ROWS * CELL) / 2);
       ctx.textAlign = "left";
     }
   }, [started]);
@@ -124,10 +124,17 @@ export default function SnakeWindow() {
     draw();
   }, [draw]);
 
+  const changeDir = useCallback((nd: Dir) => {
+    const s = stateRef.current;
+    if (!s.alive) return;
+    if (nd.x !== -s.dir.x || nd.y !== -s.dir.y) {
+      s.nextDir = nd;
+    }
+  }, []);
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (!started) { startGame(); return; }
-      const s = stateRef.current;
       const map: Record<string, Dir> = {
         ArrowUp: { x: 0, y: -1 },
         ArrowDown: { x: 0, y: 1 },
@@ -135,16 +142,27 @@ export default function SnakeWindow() {
         ArrowRight: { x: 1, y: 0 },
       };
       const nd = map[e.key];
-      if (nd && (nd.x !== -s.dir.x || nd.y !== -s.dir.y)) {
-        s.nextDir = nd;
-        e.preventDefault();
-      }
+      if (nd) { changeDir(nd); e.preventDefault(); }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [started, startGame]);
+  }, [started, startGame, changeDir]);
 
   useEffect(() => () => { if (loopRef.current) clearInterval(loopRef.current); }, []);
+
+  const dpadBtn = (label: string, dir: Dir) => (
+    <button
+      className="win95-btn"
+      onPointerDown={(e) => {
+        e.preventDefault();
+        if (!started || !alive) { startGame(); return; }
+        changeDir(dir);
+      }}
+      style={{ width: 44, height: 44, minWidth: 0, fontSize: 16, padding: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
+    >
+      {label}
+    </button>
+  );
 
   return (
     <div
@@ -157,6 +175,7 @@ export default function SnakeWindow() {
         background: "#c0c0c0",
         gap: 8,
         padding: 12,
+        overflowY: "auto",
       }}
     >
       <div style={{ fontSize: 11, fontWeight: "bold", fontFamily: "MS Sans Serif, Arial, sans-serif" }}>
@@ -166,15 +185,45 @@ export default function SnakeWindow() {
         ref={canvasRef}
         width={COLS * CELL}
         height={ROWS * CELL}
-        style={{ border: "2px inset #808080", cursor: "pointer", display: "block" }}
-        onClick={() => {
-          if (!started || !alive) startGame();
-          canvasRef.current?.focus();
+        style={{ border: "2px inset #808080", cursor: "pointer", display: "block", touchAction: "none" }}
+        onClick={() => { if (!started || !alive) startGame(); canvasRef.current?.focus(); }}
+        onTouchStart={(e) => {
+          touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }}
+        onTouchEnd={(e) => {
+          if (!touchStartRef.current) return;
+          const dx = e.changedTouches[0].clientX - touchStartRef.current.x;
+          const dy = e.changedTouches[0].clientY - touchStartRef.current.y;
+          touchStartRef.current = null;
+          if (!started || !alive) { startGame(); return; }
+          if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+          if (Math.abs(dx) > Math.abs(dy)) {
+            changeDir(dx > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 });
+          } else {
+            changeDir(dy > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 });
+          }
         }}
         tabIndex={0}
       />
+
+      {isMobile && (
+        <div style={{ display: "grid", gridTemplateColumns: "44px 44px 44px", gridTemplateRows: "44px 44px 44px", gap: 4, marginTop: 4 }}>
+          <div />
+          {dpadBtn("▲", { x: 0, y: -1 })}
+          <div />
+          {dpadBtn("◄", { x: -1, y: 0 })}
+          <div style={{ background: "#b0b0b0", border: "2px inset #808080", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#555" }}>●</div>
+          {dpadBtn("►", { x: 1, y: 0 })}
+          <div />
+          {dpadBtn("▼", { x: 0, y: 1 })}
+          <div />
+        </div>
+      )}
+
       <div style={{ fontSize: 10, color: "#555", fontFamily: "MS Sans Serif, Arial, sans-serif" }}>
-        {started ? "Arrow keys to control" : "Click canvas to start"}
+        {isMobile
+          ? (started ? "Swipe or use buttons" : "Tap canvas to start")
+          : (started ? "Arrow keys to control" : "Click canvas to start")}
       </div>
     </div>
   );
