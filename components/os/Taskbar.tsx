@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useWindowManager, WindowId } from "./WindowManager";
 import { getMuted, setMuted } from "@/lib/sounds";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 interface TaskbarProps {
   onOpenWindow: (id: WindowId) => void;
@@ -26,6 +27,7 @@ export default function Taskbar({ onOpenWindow }: TaskbarProps) {
   const [startOpen, setStartOpen] = useState(false);
   const [clock, setClock] = useState("");
   const [muted, setMutedState] = useState(false);
+  const isMobile = useIsMobile();
 
   const toggleMute = () => {
     const next = !muted;
@@ -70,18 +72,21 @@ export default function Taskbar({ onOpenWindow }: TaskbarProps) {
       {/* Separator */}
       <div style={{ width: 2, height: 22, background: "#808080", borderRight: "1px solid #fff", margin: "0 2px" }} />
 
-      {/* Open window buttons */}
-      <div style={{ display: "flex", gap: 2, flex: 1, overflow: "hidden" }}>
-        {openWindows.map((w) => (
-          <button
-            key={w.id}
-            className={`taskbar-window-btn ${!w.isMinimized ? "active" : ""}`}
-            onClick={() => handleTaskbarBtn(w.id)}
-          >
-            {w.icon} {w.title}
-          </button>
-        ))}
-      </div>
+      {/* Open window buttons — hidden on mobile (full-screen windows have their own close) */}
+      {!isMobile && (
+        <div style={{ display: "flex", gap: 2, flex: 1, overflow: "hidden" }}>
+          {openWindows.map((w) => (
+            <button
+              key={w.id}
+              className={`taskbar-window-btn ${!w.isMinimized ? "active" : ""}`}
+              onClick={() => handleTaskbarBtn(w.id)}
+            >
+              {w.icon} {w.title}
+            </button>
+          ))}
+        </div>
+      )}
+      {isMobile && <div style={{ flex: 1 }} />}
 
       {/* System tray */}
       <div

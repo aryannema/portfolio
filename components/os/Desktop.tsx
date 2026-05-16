@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback, useEffect } from "react";
 import { useWindowManager, WindowId } from "./WindowManager";
+import { useIsMobile } from "@/lib/useIsMobile";
 import Screensaver from "./Screensaver";
 import Win95Window from "./Win95Window";
 import Taskbar from "./Taskbar";
@@ -51,6 +52,7 @@ interface ContextMenu {
 export default function Desktop({ profile, skills, projects, resumeUrl }: DesktopProps) {
   const { windows, openWindow } = useWindowManager();
   const desktopRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
   const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
   const [selectedIcon, setSelectedIcon] = useState<WindowId | null>(null);
   const [screensaver, setScreensaver] = useState(false);
@@ -111,151 +113,188 @@ export default function Desktop({ profile, skills, projects, resumeUrl }: Deskto
       {/* Desktop area */}
       <div
         ref={desktopRef}
-        style={{ flex: 1, position: "relative", overflow: "hidden" }}
+        style={{ flex: 1, position: "relative", overflow: isMobile ? "auto" : "hidden" }}
         onClick={handleDesktopClick}
-        onContextMenu={handleContextMenu}
+        onContextMenu={isMobile ? undefined : handleContextMenu}
       >
         {/* Subtle tiled wallpaper pattern */}
         <div
           style={{
-            position: "absolute",
+            position: isMobile ? "fixed" : "absolute",
             inset: 0,
             backgroundImage: "repeating-linear-gradient(45deg, rgba(0,100,100,0.12) 0, rgba(0,100,100,0.12) 1px, transparent 1px, transparent 8px)",
             pointerEvents: "none",
           }}
         />
 
-        {/* Desktop icons */}
-        {ICONS.map((icon) => (
-          <div
-            key={icon.id}
-            className={`desktop-icon${selectedIcon === icon.id ? " selected" : ""}`}
-            style={{ left: icon.x, top: icon.y }}
-            onClick={(e) => handleIconClick(e, icon.id)}
-            onDoubleClick={() => handleIconDblClick(icon.id)}
-          >
-            <div
-              className="icon-img-wrap"
-              style={{
-                fontSize: 36,
-                lineHeight: 1,
-                background: selectedIcon === icon.id ? "rgba(0,0,128,0.5)" : "transparent",
-                outline: selectedIcon === icon.id ? "1px dotted rgba(255,255,255,0.8)" : "none",
-              }}
-            >
-              {icon.icon}
-            </div>
-            <div
-              className="icon-label"
-              style={{
-                background: selectedIcon === icon.id ? "#000080" : "transparent",
-                color: "#fff",
-              }}
-            >
-              {icon.label}
-            </div>
-          </div>
-        ))}
-
-        {/* Right-click context menu */}
-        {contextMenu && (
+        {isMobile ? (
+          /* ── Mobile: scrollable 2-col icon grid ── */
           <div
             style={{
-              position: "absolute",
-              left: contextMenu.x,
-              top: contextMenu.y,
-              background: "#c0c0c0",
-              border: "2px solid",
-              borderColor: "#ffffff #808080 #808080 #ffffff",
-              boxShadow: "2px 2px 0 #000",
-              zIndex: 9000,
-              minWidth: 160,
-              fontSize: 11,
-              fontFamily: "MS Sans Serif, Arial, sans-serif",
+              display: "grid",
+              gridTemplateColumns: "repeat(2, 1fr)",
+              gap: 12,
+              padding: 16,
+              alignContent: "start",
             }}
-            onClick={(e) => e.stopPropagation()}
           >
-            {[
-              { label: "Arrange Icons", icon: "▤", action: () => setContextMenu(null) },
-              { label: "Refresh", icon: "↻", action: () => { setContextMenu(null); } },
-              null,
-              { label: "New Folder", icon: "📁", action: () => setContextMenu(null) },
-              null,
-              { label: "Properties", icon: "ℹ️", action: () => { openWindow("about"); setContextMenu(null); } },
-            ].map((item, i) =>
-              item === null ? (
-                <div key={i} style={{ height: 1, background: "#808080", margin: "2px 4px" }} />
-              ) : (
+            {ICONS.map((icon) => (
+              <div
+                key={icon.id}
+                onClick={(e) => { e.stopPropagation(); openWindow(icon.id); }}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "14px 8px",
+                  background: "rgba(0,0,0,0.15)",
+                  borderRadius: 4,
+                  cursor: "pointer",
+                  userSelect: "none",
+                  WebkitTapHighlightColor: "transparent",
+                }}
+              >
+                <div style={{ fontSize: 44, lineHeight: 1 }}>{icon.icon}</div>
+                <div className="icon-label" style={{ color: "#fff", fontSize: 12 }}>{icon.label}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* ── Desktop: absolute-positioned icons ── */
+          <>
+            {ICONS.map((icon) => (
+              <div
+                key={icon.id}
+                className={`desktop-icon${selectedIcon === icon.id ? " selected" : ""}`}
+                style={{ left: icon.x, top: icon.y }}
+                onClick={(e) => handleIconClick(e, icon.id)}
+                onDoubleClick={() => handleIconDblClick(icon.id)}
+              >
                 <div
-                  key={item.label}
-                  onClick={item.action}
+                  className="icon-img-wrap"
                   style={{
-                    padding: "4px 20px 4px 8px",
-                    cursor: "default",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    whiteSpace: "nowrap",
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.background = "#000080";
-                    (e.currentTarget as HTMLDivElement).style.color = "#fff";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.background = "transparent";
-                    (e.currentTarget as HTMLDivElement).style.color = "#000";
+                    fontSize: 36,
+                    lineHeight: 1,
+                    background: selectedIcon === icon.id ? "rgba(0,0,128,0.5)" : "transparent",
+                    outline: selectedIcon === icon.id ? "1px dotted rgba(255,255,255,0.8)" : "none",
                   }}
                 >
-                  <span style={{ width: 16, textAlign: "center", fontSize: 12 }}>{item.icon}</span>
-                  {item.label}
+                  {icon.icon}
                 </div>
-              )
+                <div
+                  className="icon-label"
+                  style={{
+                    background: selectedIcon === icon.id ? "#000080" : "transparent",
+                    color: "#fff",
+                  }}
+                >
+                  {icon.label}
+                </div>
+              </div>
+            ))}
+
+            {/* Right-click context menu */}
+            {contextMenu && (
+              <div
+                style={{
+                  position: "absolute",
+                  left: contextMenu.x,
+                  top: contextMenu.y,
+                  background: "#c0c0c0",
+                  border: "2px solid",
+                  borderColor: "#ffffff #808080 #808080 #ffffff",
+                  boxShadow: "2px 2px 0 #000",
+                  zIndex: 9000,
+                  minWidth: 160,
+                  fontSize: 11,
+                  fontFamily: "MS Sans Serif, Arial, sans-serif",
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {[
+                  { label: "Arrange Icons", icon: "▤", action: () => setContextMenu(null) },
+                  { label: "Refresh", icon: "↻", action: () => { setContextMenu(null); } },
+                  null,
+                  { label: "New Folder", icon: "📁", action: () => setContextMenu(null) },
+                  null,
+                  { label: "Properties", icon: "ℹ️", action: () => { openWindow("about"); setContextMenu(null); } },
+                ].map((item, i) =>
+                  item === null ? (
+                    <div key={i} style={{ height: 1, background: "#808080", margin: "2px 4px" }} />
+                  ) : (
+                    <div
+                      key={item.label}
+                      onClick={item.action}
+                      style={{
+                        padding: "4px 20px 4px 8px",
+                        cursor: "default",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        whiteSpace: "nowrap",
+                      }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLDivElement).style.background = "#000080";
+                        (e.currentTarget as HTMLDivElement).style.color = "#fff";
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLDivElement).style.background = "transparent";
+                        (e.currentTarget as HTMLDivElement).style.color = "#000";
+                      }}
+                    >
+                      <span style={{ width: 16, textAlign: "center", fontSize: 12 }}>{item.icon}</span>
+                      {item.label}
+                    </div>
+                  )
+                )}
+              </div>
             )}
-          </div>
+          </>
         )}
 
         {/* ABOUT */}
-        <Win95Window id="about" desktopRef={desktopRef} menuItems={["File", "Edit", "View", "Help"]} statusText="Ready">
+        <Win95Window id="about" desktopRef={desktopRef} isMobile={isMobile} menuItems={["File", "Edit", "View", "Help"]} statusText="Ready">
           <AboutWindow profile={profile} />
         </Win95Window>
 
         {/* SKILLS */}
-        <Win95Window id="skills" desktopRef={desktopRef} menuItems={["File", "Edit", "Format", "Help"]} statusText={`${skills.length} skills loaded`}>
+        <Win95Window id="skills" desktopRef={desktopRef} isMobile={isMobile} menuItems={["File", "Edit", "Format", "Help"]} statusText={`${skills.length} skills loaded`}>
           <SkillsWindow skills={skills} />
         </Win95Window>
 
         {/* PROJECTS */}
-        <Win95Window id="projects" desktopRef={desktopRef} menuItems={["File", "View", "Go", "Help"]} statusText={`${projects.length} project(s)`}>
+        <Win95Window id="projects" desktopRef={desktopRef} isMobile={isMobile} menuItems={["File", "View", "Go", "Help"]} statusText={`${projects.length} project(s)`}>
           <ProjectsWindow projects={projects} />
         </Win95Window>
 
         {/* CONTACT */}
-        <Win95Window id="contact" desktopRef={desktopRef} menuItems={["File", "Help"]} statusText="Ready to send">
+        <Win95Window id="contact" desktopRef={desktopRef} isMobile={isMobile} menuItems={["File", "Help"]} statusText="Ready to send">
           <ContactWindow />
         </Win95Window>
 
         {/* RESUME */}
-        <Win95Window id="resume" desktopRef={desktopRef} statusText={resumeUrl ? "resume.pdf — 1 file" : "No file"}>
+        <Win95Window id="resume" desktopRef={desktopRef} isMobile={isMobile} statusText={resumeUrl ? "resume.pdf — 1 file" : "No file"}>
           <ResumeWindow resumeUrl={resumeUrl} />
         </Win95Window>
 
         {/* SNAKE */}
-        <Win95Window id="snake" desktopRef={desktopRef} statusText="Arrow keys to play">
+        <Win95Window id="snake" desktopRef={desktopRef} isMobile={isMobile} statusText="Arrow keys to play">
           <SnakeWindow />
         </Win95Window>
 
         {/* MINESWEEPER */}
-        <Win95Window id="minesweeper" desktopRef={desktopRef} statusText="Right-click to flag">
+        <Win95Window id="minesweeper" desktopRef={desktopRef} isMobile={isMobile} statusText="Right-click to flag">
           <MinesweeperWindow />
         </Win95Window>
 
         {/* VIRUS */}
-        <Win95Window id="virus" desktopRef={desktopRef} statusText="DevAntivirus 98">
+        <Win95Window id="virus" desktopRef={desktopRef} isMobile={isMobile} statusText="DevAntivirus 98">
           <VirusWindow />
         </Win95Window>
 
         {/* TERMINAL */}
-        <Win95Window id="terminal" desktopRef={desktopRef} statusText='Type "help" for commands'>
+        <Win95Window id="terminal" desktopRef={desktopRef} isMobile={isMobile} statusText='Type "help" for commands'>
           <TerminalWindow profile={profile} />
         </Win95Window>
       </div>

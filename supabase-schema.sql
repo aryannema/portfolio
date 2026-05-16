@@ -118,3 +118,23 @@ create policy "Auth users can upload resume" on storage.objects
 
 create policy "Auth users can update resume" on storage.objects
   for update using (bucket_id = 'resume' and auth.role() = 'authenticated');
+
+-- ================================================
+-- STORAGE BUCKET FOR AVATARS
+-- ================================================
+
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true)
+on conflict do nothing;
+
+create policy "Public can read avatars" on storage.objects
+  for select using (bucket_id = 'avatars');
+
+create policy "Auth users can upload avatar" on storage.objects
+  for insert with check (bucket_id = 'avatars' and auth.role() = 'authenticated');
+
+create policy "Auth users can update avatar" on storage.objects
+  for update using (bucket_id = 'avatars' and auth.role() = 'authenticated');
+
+create policy "Auth users can delete avatar" on storage.objects
+  for delete using (bucket_id = 'avatars' and auth.role() = 'authenticated');

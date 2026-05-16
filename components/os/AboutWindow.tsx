@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Profile } from "@/types";
 
 export default function AboutWindow({ profile }: { profile: Profile | null }) {
@@ -35,9 +36,21 @@ export default function AboutWindow({ profile }: { profile: Profile | null }) {
             justifyContent: "center",
             fontSize: 28,
             flexShrink: 0,
+            overflow: "hidden",
           }}
         >
-          🧑‍💻
+          {profile.avatar_url ? (
+            <Image
+              src={profile.avatar_url}
+              alt={profile.name}
+              width={52}
+              height={52}
+              style={{ objectFit: "cover", width: "100%", height: "100%" }}
+              unoptimized
+            />
+          ) : (
+            "🧑‍💻"
+          )}
         </div>
         <div>
           <div style={{ color: "#fff", fontWeight: "bold", fontSize: 14 }}>{profile.name}</div>

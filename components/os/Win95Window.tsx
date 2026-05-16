@@ -10,6 +10,7 @@ interface Win95WindowProps {
   menuItems?: string[];
   statusText?: string;
   desktopRef: React.RefObject<HTMLDivElement>;
+  isMobile?: boolean;
 }
 
 export default function Win95Window({
@@ -18,6 +19,7 @@ export default function Win95Window({
   menuItems,
   statusText,
   desktopRef,
+  isMobile = false,
 }: Win95WindowProps) {
   const {
     windows,
@@ -106,7 +108,15 @@ export default function Win95Window({
 
   if (!win.isOpen || win.isMinimized) return null;
 
-  const style: React.CSSProperties = {
+  const mobileStyle: React.CSSProperties = {
+    position: "fixed",
+    inset: 0,
+    width: "100%",
+    height: "100%",
+    zIndex: 1000 + win.zIndex,
+  };
+
+  const desktopStyle: React.CSSProperties = {
     left: win.x,
     top: win.y,
     width: win.width,
@@ -118,42 +128,50 @@ export default function Win95Window({
     <div
       ref={windowRef}
       className="win95-window win95-window-opening"
-      style={style}
+      style={isMobile ? mobileStyle : desktopStyle}
       onMouseDown={() => bringToFront(id)}
     >
       {/* Title bar */}
       <div
         className="win95-titlebar"
-        style={{ background: isActive ? "#000080" : "#808080" }}
-        onMouseDown={onTitlebarMouseDown}
+        style={{
+          background: isActive ? "#000080" : "#808080",
+          cursor: isMobile ? "default" : "move",
+        }}
+        onMouseDown={isMobile ? undefined : onTitlebarMouseDown}
       >
         <span style={{ fontSize: 14, lineHeight: 1 }}>{win.icon}</span>
         <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {win.title}
         </span>
         <div style={{ display: "flex", gap: 2 }}>
+          {!isMobile && (
+            <>
+              <button
+                className="win95-titlebar-btn"
+                onClick={(e) => { e.stopPropagation(); playMinimize(); minimizeWindow(id); }}
+                title="Minimize"
+              >
+                <span style={{ marginBottom: 3, display: "block" }}>_</span>
+              </button>
+              <button
+                className="win95-titlebar-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  playClick();
+                  if (desktopRef.current) {
+                    toggleMaximize(id, desktopRef.current.offsetWidth, desktopRef.current.offsetHeight);
+                  }
+                }}
+                title={win.isMaximized ? "Restore" : "Maximize"}
+              >
+                {win.isMaximized ? "❐" : "□"}
+              </button>
+            </>
+          )}
           <button
             className="win95-titlebar-btn"
-            onClick={(e) => { e.stopPropagation(); playMinimize(); minimizeWindow(id); }}
-            title="Minimize"
-          >
-            <span style={{ marginBottom: 3, display: "block" }}>_</span>
-          </button>
-          <button
-            className="win95-titlebar-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              playClick();
-              if (desktopRef.current) {
-                toggleMaximize(id, desktopRef.current.offsetWidth, desktopRef.current.offsetHeight);
-              }
-            }}
-            title={win.isMaximized ? "Restore" : "Maximize"}
-          >
-            {win.isMaximized ? "❐" : "□"}
-          </button>
-          <button
-            className="win95-titlebar-btn"
+            style={isMobile ? { width: 28, height: 28, fontSize: 14 } : undefined}
             onClick={(e) => { e.stopPropagation(); playWindowClose(); closeWindow(id); }}
             title="Close"
           >
@@ -162,8 +180,8 @@ export default function Win95Window({
         </div>
       </div>
 
-      {/* Menu bar */}
-      {menuItems && menuItems.length > 0 && (
+      {/* Menu bar — hidden on mobile to save vertical space */}
+      {!isMobile && menuItems && menuItems.length > 0 && (
         <div className="win95-menubar">
           {menuItems.map((item) => (
             <span key={item} className="win95-menubar-item">
@@ -188,8 +206,8 @@ export default function Win95Window({
         </div>
       )}
 
-      {/* Resize handle */}
-      {!win.isMaximized && (
+      {/* Resize handle — desktop only */}
+      {!isMobile && !win.isMaximized && (
         <div
           onMouseDown={onResizeMouseDown}
           style={{
